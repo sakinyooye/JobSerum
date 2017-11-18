@@ -25,10 +25,12 @@ passport.use(new GoogleStrategy({
     clientSecret: GOOGLE_CLIENT_SECRET,
     callbackURL: REDIRECT_URL,
     scope: [
-    'profile', 
+    'profile',  
     'https://www.googleapis.com/auth/drive', 
+    'hrrps://ww.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/user.emails.read',
     'https://www.googleapis.com/auth/drive.readonly', 
+
     ], 
   },
 
@@ -40,9 +42,12 @@ passport.use(new GoogleStrategy({
     // send to db
     User.findOne({where : {googleId : profile.id} })
       .then(function(obj) {
+        // console.log('this is the profile', profile)
+        console.log('this is the email: ', profile.emails[0].value)
         // if that obj exists
         if (obj) {
           return obj.update({
+            emailAddress : profile.emails[0].value,
             accessToken : profile.accessToken, 
             expires_in : profile.expires_in, 
             refreshToken : profile.refreshToken,
@@ -50,6 +55,7 @@ passport.use(new GoogleStrategy({
           })
         } else {
           return User.create({
+            emailAddress : profile.emails[0].value,
             googleId : profile.id,
             accessToken : profile.accessToken, 
             expires_in : profile.expires_in, 
@@ -70,6 +76,7 @@ exports.authenticate = passport.authenticate('google', {
   scope: [
     'profile', 
     'https://www.googleapis.com/auth/drive', 
+    'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/user.emails.read',
     'https://www.googleapis.com/auth/drive.readonly', 
     ],
@@ -86,6 +93,7 @@ exports.return = passport.authenticate('google', {
 	scope: [
     'profile', 
     'https://www.googleapis.com/auth/drive', 
+    'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/user.emails.read',
     'https://www.googleapis.com/auth/drive.readonly', 
   ],

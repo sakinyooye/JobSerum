@@ -4,7 +4,7 @@ import CoverLetterField from './ResumeManager/CoverLetterField'
 import ResumeField from './ResumeManager/ResumeField'
 import ResumeEditor from './ResumeManager/ResumeEditor'
 
-class RecordSummary extends React.Component {
+export default class RecordSummary extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -55,5 +55,3 @@ class RecordSummary extends React.Component {
     )
   }
 }
-
-export default RecordSummary

@@ -31,12 +31,13 @@ let User = sequelize.define('user', {
   expires_in : { type : Sequelize.INTEGER, defualtValue: ''}, 
   refreshToken : { type : Sequelize.STRING, defualtValue: ''},
   profileJSON : { type : Sequelize.JSON},
-  emailAddress : { type: Sequelize.STRING}
+  emailAddress : { type: Sequelize.STRING}, 
 });
 
 User.sync(forceObj).then(() => {
   User.bulkCreate([
   {
+    emailAddress : "tommy.york@gmail.com", 
     googleId : 123, 
     accessToken : 'ser', 
     expires_in : 123333, 

@@ -9,7 +9,6 @@ import axios from 'axios'
 import ResumeFrame from './ResumeManager/ResumeFrame.js'
 
 
-
 import {
   BrowserRouter as Router,
   Route,
@@ -158,9 +157,14 @@ export default class Input extends React.Component {
           Resume
         </label>
         <label>
+<<<<<<< HEAD
           <Link to='/docs'> {/* TODO: make this so that the picker loads. */}
             <button type="submit" className="btn btn-outline-secondary bg-secondary btn-xs">Add Resume</button>
           }
+=======
+          <Link to='/resumeSubmit'>
+            <button type="submit" className="btn btn-outline-secondary bg-secondary btn-xs">Upload Resume</button>
+>>>>>>> newDev
           </Link>
         </label>
       </div>

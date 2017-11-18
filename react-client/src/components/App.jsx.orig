@@ -199,29 +199,30 @@ class App extends React.Component {
             </nav>
 
             {/* use react router to only show one of our components at a time */}
-            <Route exact path="/" render={() => 
-              <RecordsTable records={this.state.records} 
-                searchFunction={this.resetRecords.bind(this)} 
-                googleId={this.state.googleId}
-              /> } />
+            <Route exact path="/" render={() => <RecordsTable records={this.state.records} searchFunction={this.resetRecords.bind(this)} /> } />
+<<<<<<< HEAD
             <Route exact path="/dashboard" render={() => <Dashboard searchFunction={this.getRecentRecords.bind(this)} /> } />
-            <Route exact path="/contact" render={() => <ContactPage googleId={this.state.googleId} /> } />
-            <Route exact path="/input" className="col-md-6 col-md-offset-3" render={() =>
-              <Input
-               refresh={this.resetRecords.bind(this)}
-                parse={hf.loadApplicationKeywords}
-                googleId={this.state.googleId}
-            />}
-          />
-
-<Route exact path="/docs" render={() =>
-              <ResumeFrame
-                accessToken={this.state.accessToken}
+            <Route exact path="/input" className="col-md-6 col-md-offset-3" render={() => <Input refresh={this.resetRecords.bind(this)} parse={hf.loadApplicationKeywords} />} />
+            <Route exact path="/docs" render={() => 
+              <ResumeFrame 
+                accessToken={this.state.accessToken} 
                 refreshToken={this.state.refreshToken} 
                 googleId={this.state.googleId}
               />} 
             />
             <Route exact path="/record/:recordID" className="col-md-6 col-md-offset-3" render={({ match }) => 
+=======
+            <Route exact path="/dashboard" render={() => <Dashboard /> } />
+            <Route exact path="/input" className="col-md-6 col-md-offset-3" render={() => 
+            <Input 
+              refresh={this.resetRecords.bind(this)} 
+              parse={hf.loadApplicationKeywords} 
+              googleId={this.state.googleId}
+              />} 
+            />
+            <Route exact path="/resume" render={() => <ResumeFrame accessToken={this.state.accessToken} refreshToken={this.state.refreshToken} googleId={this.state.googleId}/> } />
+            <Route exact path="/record/recordID" className="col-md-6 col-md-offset-3" render={({ match }) => 
+>>>>>>> newDev
               <RecordSummary recordId={this.state.records[match.params.recordID - 1]} />
             } />
         </div>

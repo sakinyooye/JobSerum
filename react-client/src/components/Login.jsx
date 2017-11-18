@@ -1,40 +1,31 @@
 import React from 'react';
-import hf from '../HelperFuncStateStorage';
-
-// not yet implemented.
-// think of this as a skeleton - the following functions aren't correctly implemented
-// in our functions file.
+import axios from 'axios'
 
 export default class Login extends React.Component {
     constructor(props) {
-        super();
-        this.state = {
-
-        };
+        super(props);
+        this.state = {};
+      this.loginRequest = this.loginRequest.bind(this)
     }
 
   loginRequest(value) {
-    axios.post('login', {
-      user: value
-    }).then(function (response) {
-      //console.log(response);
-    }).catch(function(error) {
-      console.log(error);
-    });
-    return null;
+    // if we wanted something besides the oAuth to run when you press the 
+    // login button, we could put it here. 
+    // console.log('the login request gets called')
   }
 
-    render() {
+  // this login runs /auth, which itself redirects to /auth/callback which redirects to /records
+  render() {
     return(
-        <div>
-            <h1>Login</h1>
-            <input type="text" value={this.state.user}  onChange={(e) => {
-                hf.updateFieldValue(this, 'user', e)
-            }}/>
-            <div>
-                <button type="submit" onClick={() => hf.loginRequest(this, this.state.user)}> Login </button>
-            </div>
-        </div>
+      <div>
+          <h1>Login With Google</h1>
+          <a href='/auth'> 
+            <button type="submit" onClick={() => {this.loginRequest()}}>
+             Login With Google 
+            </button>
+          </a>
+      </div>
+
     )
-    }
+  }
 }

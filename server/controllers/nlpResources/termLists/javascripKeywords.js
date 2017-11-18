@@ -96,6 +96,7 @@ let keywords = `
     Cannon.js
 
     Redux
+    redux
     .net
     typography
     seo

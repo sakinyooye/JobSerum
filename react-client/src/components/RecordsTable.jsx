@@ -12,6 +12,7 @@ export default class RecordsTable extends React.Component {
   }
 
   render() {
+    console.log(this.props.records);
     let records = this.props.records
     return (<div className='records-list'>
  <table className="table">
@@ -21,6 +22,7 @@ export default class RecordsTable extends React.Component {
       <th>Location</th>
       <th>Contact</th>
       <th>Notes</th>
+      <th>Tags</th>
       <th>Cover Letter</th>
       <th>Resume</th>
       <th>First Interview</th>
@@ -30,9 +32,10 @@ export default class RecordsTable extends React.Component {
     </tr>
   </thead>
   <tbody>
-        { records.map((record) =>
+        { records && records.map((record) =>
           <RecordsTableEntry
-           key={record.key}
+           searchFunction={this.props.searchFunction}
+           key={Math.floor(Math.random() * 1000000)}
            record={record}    
            />
       )}

@@ -14,6 +14,11 @@ let User = require('./sequelize.js').User;
 let Company = require('./sequelize.js').Company;
 let Artifact = require('./sequelize.js').Artifacts;
 let Contact = require('./sequelize.js').Contact;
+let RowEntry = require('./sequelize.js').RowEntry;
+
+var clientID = require('./keys/googleOAuth.js').clientID;
+var clientSecret = require('./keys/googleOAuth.js').clientSecret;
+var redirectURL = require('./keys/googleOAuth.js').redirectURL;
 
 var app = express();
 
@@ -23,10 +28,6 @@ app.get('/authcode', function(req, res){
 
 	res.send();
 })
-
-var clientID = '97655275147-4qllou8o2kch2n8tacd4d40kht793jti.apps.googleusercontent.com';
-var clientSecret = 'i7MY-yzMBnUn79fM2WN1tf9F';
-var redirectURL = 'http://localhost:8080/authcode';
 
 var authorizationClient = new OAuthClient(clientID, clientSecret, redirectURL);
 
@@ -83,7 +84,13 @@ function getAccessToken (oauth2Client, callback) {
       // set tokens to the client
       // TODO: tokens should be set by OAuth2 client.
       oauth2Client.setCredentials(tokens);
-      callback(oauth2Client, handleEmail);
+      authorizationClient = oauth2Client;
+
+
+      setInterval(function(){
+		callback(authorizationClient, handleEmail);
+      }, 30000);
+      //callback(oauth2Client, handleEmail);
     });
   });
 };
@@ -106,10 +113,12 @@ var getUserEmailAddressesFromGoogle = function(authorizationClient, callBack){
 }
 
 var getUserEmailAddresses = function(authorizationClient, callBack){
-	User.findAll({attributes: ['emailAddress']}).then((users) => {
+	User.findAll({attributes: ['googleId', 'emailAddress']}).then((users) => {
 		emailAddressList = users.map((user)=> {
-			return(user.dataValues.emailAddress);
-		});
+			return({email: user.dataValues.emailAddress, googleId: user.dataValues.googleId});
+		}).filter((emailAddress)=> emailAddress.email !== null && emailAddress.email !== '');
+		console.log('EMAIL ADDRESS LIST');
+		console.log(emailAddressList);
 		callBack(authorizationClient, emailAddressList);
 	});
 }
@@ -120,15 +129,190 @@ var getEmailList = function(authorizationClient, emailAddresses, callBack){
 		if(err){console.error(err)}; 
 
 		emailList = emailList.concat(messages.messages);
-		callBack(authorizationClient, emailList, emailAddresses)
+		if(emailList.length > 0 && !emailList.includes(undefined)){
+			console.log('Processing Emails...............');
+			callBack(authorizationClient, emailList, emailAddresses);
+			console.log('Done Processing Emails..........')
+		} else {
+			console.log('There are no Emails to process................')
+		}
+		
 
 		//I am not handling for if there are over 100 emails. 
 	})
 }
 
-var processEmails = function(authorizationClient, emailList, filterEmailAddresses, callBack){
+var parseEmailBodyForRecord = function(body){
+	var returnObj = {};
+	//body.replace()
+	bodyArr = body.split('\n');
+	bodyArr = bodyArr.filter((line)=> line!=='\r').map((line)=> line.replace('\r', '')).filter((line)=>line!=='');
+	//console.log(bodyArr);
+
+	if(bodyArr.length!== 12){
+		return returnObj;
+	}
+
+	bodyArr.forEach((line) => {
+		lineArr = line.split(': ');
+		if(lineArr.length!==2){
+			return returnObj;
+		}
+		console.log(lineArr);
+		returnObj[lineArr[0]] = lineArr[1];
+	});
+
+	returnObj.Tags = returnObj.Tags.split(',');
+
+	console.log(returnObj);
+	return returnObj;
+}
+
+var insertToRecordsTable = function (bodyObject) {
+    // console.log(req.body);
+    console.log('attempting to insert');
+    // console.log(req.body.companyValue);
+    // var companyId;
+    console.log(bodyObject.Company);
+    var newCompanyId;
+    Company.findOne({
+      where: {
+        name: bodyObject.Company
+      }
+    }).then((results) => {
+      if (results) {
+        console.log('=======================');
+        console.log(results.dataValues.id);
+        newCompanyId = results.dataValues.id;
+      } else {
+        console.log('results are null')
+        Company.create({
+          name: bodyObject.Company
+        }).then((x) => {
+            console.log('x, ', x.dataValues.id);
+            // console.log('x ', x.dataValues.id);
+            newCompanyId = x.dataValues.id;
+          })}})
+        .then(() => {
+          // console.log('new comapny id: ', newCompanyId)
+          console.log('New Company Id ', newCompanyId);
+          console.log('Tags ', bodyObject.Tags.map((x) => x = x.text).join(' '));
+          RowEntry.create({
+            googleId: bodyObject.googleId, 
+            companyId : newCompanyId, // this is relational
+
+            location : bodyObject.Location,
+            notes : bodyObject.Notes,
+            
+            tags : bodyObject.Tags.map((x) => x).join(' '),
+            //jobApplicationURL : req.body.jobApplicationURL,
+
+            firstInterview : bodyObject['First Interview'] === 'Yes' ? true : false,
+            secondInterview : bodyObject['Second Interview'] === 'Yes' ? true : false,
+            offer : bodyObject.Offer === 'Yes' ? true : false,
+            rejected : bodyObject.Rejected === 'Yes' ? true : false,
+
+            // this is for the document management. 
+            /*coverLetterName : req.body.coverLetterName, 
+            coverLetterURL : req.body.coverLetterURL,
+            resumeName : req.body.resumeName, 
+            resumeURL : req.body.resumeURL, */
+
+            // This is for the fullContact: 
+            contactValue: bodyObject.Contact,  // this is the name
+            contactEmailAddress: bodyObject['Contact Email'], 
+            /*socialProfiles: req.body.socialProfiles, */
+                   
+          })
+          .then(console.log('Successfully Inserted'))
+        })
+      } 
+
+
+//Version of processEmails to process new records.
+var processEmails = function(authorizationClient, emailList, filterEmailGoogleId, callBack){
+	//Not currently handling threads
+	console.log(filterEmailGoogleId)
+	for(var i = 0; i < emailList.length; i++){
+		//get each email in the the inbox
+		gmail.users.messages.get({userId: 'me', id: emailList[i].id, auth: authorizationClient}, function(err, message) {
+	  		if (err) {
+	  			return console.log('An error occured', err);
+	  		}
+
+	  		var messageDetails = [];
+	  		var emailContent = {};
+	  		emailContent.messageId = message.id;
+
+	  		//iterate over headers and populate email content object
+	  		for(var i = 0; i < message.payload.headers.length; i++){
+	  			var headerName = message.payload.headers[i].name;
+	  			var headerValue = message.payload.headers[i].value;
+
+	  			if(headerName === 'To') {
+	  				emailContent.To = headerValue;
+	  			} else if(headerName === 'From') {
+					emailContent.From = headerValue;
+	  			} else if(headerName === 'Subject') {
+	  				emailContent.Subject = headerValue;
+	  			} else if(headerName === 'Date') {
+	  				emailContent.Date = headerValue;
+	  			} else if(headerName === 'Cc') {
+	  				emailContent.Cc = headerValue;
+	  			}
+	  		}
+
+	  		//get plain text body and put onto emailContent object
+	  		emailContent.Body = getText(message);
+
+	  		//parse out from email address;
+	  		var fromAddress = emailContent.From.includes('<') && emailContent.From.includes('>') ? emailContent.From.split('<')[1].split('>')[0] : emailContent.From;
+
+	  		//if the current email is an email from a user of JobSerum...
+
+	  		for (var i = 0; i < filterEmailGoogleId.length; i++){
+	  			userEmail = filterEmailGoogleId[i].email.toUpperCase();
+
+	  			if(userEmail === fromAddress.toUpperCase()){
+	  				emailContent.googleId = filterEmailGoogleId[i].googleId;
+	  				console.log(emailContent);
+					var bodyObject = parseEmailBodyForRecord(emailContent.Body);
+					bodyObject.googleId = filterEmailGoogleId[i].googleId;
+					insertToRecordsTable(bodyObject);
+					break;
+	  			}
+
+	  		}
+
+	  		/*if(filterEmailGoogleId.map((emailIdPair) => emailIdPair.email.toUpperCase()).includes(fromAddress.toUpperCase())){
+	  			//(2) insert email into Artifacts Table (3)Add contacts from email
+
+	  			
+	  			var bodyObject = parseEmailBodyForRecord(emailContent.Body);
+	  			//enter email content into database
+	  		} */
+			console.log('<<<<<<<<<<  >>>>>>>>>>>');
+
+  		})
+	}
+
+	//Delete emails after finished.
+	/*for(var z = 0; z < emailList.length; z++){
+		gmail.users.messages.trash({userId: 'me', id: emailList[z].id, auth: authorizationClient}, function(err, message){
+			if (err) {
+				return console.log('An error occured', err);
+			}
+			console.log('Deleted processed emails');
+		})
+	}*/
+
+}
+
+//VERSION OF PROCESS EMAILS TO PROCESS NEW CONTACTS
+/*var processEmails = function(authorizationClient, emailList, filterEmailAddresses, callBack){
 	//Not currently handling threads
 
+	console.log(emailList);
 
 	for(var i = 0; i < emailList.length; i++){
 		//get each email in the the inbox
@@ -180,6 +364,7 @@ var processEmails = function(authorizationClient, emailList, filterEmailAddresse
 	  				body: emailContent.Body
 	  			})
 	  			.then(function(){
+	  				console.log('Created Artifact: ', emailContent);
 	  				toAddressArr = toAddressStr.split(' ');
 	  				ccAddressArr = ccAddressStr ? ccAddressStr.split(' ') : [];
 
@@ -188,8 +373,10 @@ var processEmails = function(authorizationClient, emailList, filterEmailAddresse
 		  				var toAddress;
 		  				if(elem.includes('@')) {
 		  					var toAddress = elem.includes('<') && elem.includes('>') ? elem.split('<')[1].split('>')[0] : elem;
+		  					toAddress = toAddress.endsWith(',') ? toAddress.slice(0, toAddress.length - 1) : toAddress;
 			  				if(toAddress.toUpperCase() !== 'JobSerumGITSS@gmail.com'.toUpperCase() && toAddress.toUpperCase() !== fromAddress.toUpperCase()){
 			  					Contact.create({emailAddress : toAddress});
+			  					console.log('Created contact: ', toAddress);
 			  				}
 		  				}
 	  				});
@@ -199,8 +386,10 @@ var processEmails = function(authorizationClient, emailList, filterEmailAddresse
 	  					var ccAddress;
 		  				if(elem.includes('@')) {
 		  					var ccAddress = elem.includes('<') && elem.includes('>') ? elem.split('<')[1].split('>')[0] : elem;
+		  					ccAddress = ccAddress.endsWith(',') ? ccAddress.slice(0, ccAddress.length - 1) : ccAddress;
 			  				if(ccAddress.toUpperCase() !== 'JobSerumGITSS@gmail.com'.toUpperCase() && ccAddress.toUpperCase() !== fromAddress.toUpperCase()){
 			  					Contact.create({emailAddress : ccAddress});
+			  					console.log('Created contact: ', ccAddress);
 			  				}
 		  				}
 	  				});
@@ -217,10 +406,11 @@ var processEmails = function(authorizationClient, emailList, filterEmailAddresse
 			if (err) {
 				return console.log('An error occured', err);
 			}
+			console.log('Deleted processed emails');
 		})
 	}
 
-}
+}*/
 
   app.listen(app.listen(8080, function() {
   	console.log('listening on port 8080')

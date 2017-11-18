@@ -37,15 +37,15 @@ export default class ResumePicker extends React.Component {
         recordId : this.props.recordId, 
       })
       .then((response) => {
-        // console.log('this is the response that you get from the handleDocumentAdd: ', response.data)
-        let resURL = response.data.resumeURL
-        let resName = response.data.resumeName
-
-        // console.log('resName: ', resName)
+        console.log('this is the response that you get from the handleDocumentAdd: ', response)
+        let resURL = (this.props.targetDocument === 'resume') ? response.data.resumeURL : response.data.coverLetterURL
+        let resName = (this.props.targetDocument === 'resume') ? response.data.resumeName : response.data.coverLetterName
+        console.log('resName: ', resName)
         // console.log('resURL', resURL)
         this.setState({openInGoogleEditorURL : resURL})
         this.setState({documentName : resName})
-        // this updates the name on the recordsTableEntry. 
+        // this updates the name on the recordsTableEntry. This needs to be different 
+        // functions based on which button calls the updateName. 
         this.props.updateName(resName)
       })
     }
@@ -79,7 +79,7 @@ export default class ResumePicker extends React.Component {
         }
       }
       >
-      <button>Add A {(this.props.targetDocument == 'coverLetter') ? 'Cover Letter' : 'Resume'}</button>
+      <button>Add A {(this.props.targetDocument === 'coverLetter') ? 'Cover Letter' : 'Resume'}</button>
       <div className="google"></div>
     </GooglePicker>
     )

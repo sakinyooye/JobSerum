@@ -10,22 +10,24 @@ import {
 import ResumeEditor from './ResumeManager/ResumeEditor'
 import ResumePicker from './ResumeManager/ResumePicker'
 import CoverLetterField from './ResumeManager/CoverLetterField'
-// import ResumeField from './ResumeManager/ResumeField'
+import ResumeField from './ResumeManager/ResumeField'
 
 // import Axios from 'axios';
 
 export default class RecordsTableEntry extends React.Component {
   constructor(props) {
-    super();
+    super(props)
+
     this.props = props;
+    console.log('these are the recordsTable entry props,' , this.props)
     this.state = {
       id: this.props.record.id,
       tags: this.props.record.tags,
 
-		  coverLetterName: this.props.coverLetterName, 
-      coverLetterURL: this.props.coverLetterURL,
-      resumeName: this.props.resumeName,
-      resumeURL: this.props.resumeURL,
+		  coverLetterName: this.props.record.coverLetterName, 
+      coverLetterURL: this.props.record.coverLetterURL,
+      resumeName: this.props.record.resumeName,
+      resumeURL: this.props.record.resumeURL,
 
 			firstInterview: this.props.record.firstInterview,
 			secondInterview: this.props.record.secondInterview,
@@ -68,8 +70,15 @@ export default class RecordsTableEntry extends React.Component {
     // coverLetterURL based on the record id. 
   }
 
+
+
+
+
+
   
   render() {
+    console.log('this is the this.state.coverLettername in the recordsEntry', this.state.coverLetterName)
+
     let nameObj =Object.assign({}, this.props.record.company);
     //console.log(nameObj.name);
     return (
@@ -92,12 +101,11 @@ export default class RecordsTableEntry extends React.Component {
       {/* This the resume */}
       <td> 
         {/*<ResumeEditor recordId = {this.props.record.id} targetDocument = 'resume' /> */}
-        <h5> current resume: {this.state.resumeName}</h5> 
-        <ResumePicker 
-          updateName = {this.updateResumeName} 
-          recordId = {this.props.record.id} 
-          targetDocument = 'resume'
-        />
+        <ResumeField 
+          resumeName = {this.state.resumeName}
+          updateName = {this.updateResumeName}
+          recordId = {this.props.record.id}
+        /> 
       </td>
       
       <td> <input type="checkbox" name="firstInterview" checked={this.state.firstInterview} onChange={(e) => {hf.postFieldValue(this, 'firstInterview', e)}} /></td>

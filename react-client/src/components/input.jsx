@@ -21,30 +21,35 @@ export default class Input extends React.Component {
     super();
     this.props = props;
     this.state = {        // these represent all of our database row values.
+      googleId: this.props.googleId,
       companyValue: '',
+      
       locationValue: '',
-      contactValue: '',
-      contactEmail: '',
-      socialProfiles: [],
       notesValue: '',
-      coverLetterName: '', 
-      coverLetterURL: null,
-      resumeName: '',
-      resumeURL: null,
+      tags: [{ id: 1, text: "Sample Keyword" }],
+      jobApplicationURL: '', 
+
       firstInterview: false,
       secondInterview: false,
       offer: false,
       rejected: false,
-      tags: [{ id: 1, text: "Sample Keyword" }],
-      jobApplicationURL: '',
-      jobApplicationText: '',
-      googleId: this.props.googleId,
+      
+      // this is for document management
+      coverLetterName: '', 
+      coverLetterURL: null,
+      resumeName: '',
+      resumeURL: null,
+      
+      contactValue: '',
+      contactEmail: '',
+      socialProfiles: [],
+
     };
     this.refresh = this.props.refresh.bind(this)
   }
 
   
-
+  // TODO: THIS IS BEING MOVED TO THE RECORDS PAGE.
   //fetch social media profiles from fullcontact api via server route as proxy.
   getSocialProfiles(){
     console.log(this.state.contactEmail);

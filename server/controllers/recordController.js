@@ -77,18 +77,30 @@ exports.insert = function (req, res) {
         .then(() => {
           // console.log('new comapny id: ', newCompanyId)
           RowEntry.create({
-            companyId : newCompanyId,
+            googleId: req.body.googleId, 
+            companyId : newCompanyId, // this is relational
+
             location : req.body.locationValue,
-            contact : req.body.contactValue,
             notes : req.body.notesValue,
-            keywords : req.body.tags.map((x) => x = x.text).join(' '),
-            // coverLetter : req.body.coverLetter,
-            // resume : req.body.resume,
+            tags : req.body.tags.map((x) => x = x.text).join(' '),
+            jobApplicationURL : req.body.jobApplicationURL,
+
             firstInterview : req.body.firstInterview,
             secondInterview : req.body.secondInterview,
             offer : req.body.offer,
-            rejected : req.body.rejected
-            
+            rejected : req.body.rejected,
+
+            // this is for the document management. 
+            coverLetterName : req.body.coverLetterName, 
+            coverLetterURL : req.body.coverLetterURL,
+            resumeName : req.body.resumeName, 
+            resumeURL : req.body.resumeURL, 
+
+            // This is for the fullContact: 
+            contactValue: req.body.companyValue,  // this is the name
+            contactEmailAddress: req.body.contactEmail, 
+            socialProfiles: req.body.socialProfiles, 
+                      
           })
           .then(() => res.end())
         })

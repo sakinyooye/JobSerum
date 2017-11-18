@@ -1,5 +1,8 @@
 import React from 'react';
 import ContactInput from './FullContact/ContactInput.jsx';
+import CoverLetterField from './ResumeManager/CoverLetterField'
+import ResumeField from './ResumeManager/ResumeField'
+import ResumeEditor from './ResumeManager/ResumeEditor'
 
 class RecordSummary extends React.Component {
   constructor(props) {
@@ -24,9 +27,25 @@ class RecordSummary extends React.Component {
           <div>Company: {this.props.recordId.company.name} </div>
           <div>Location: {this.props.recordId.location}</div>
           <div>Notes: {this.props.recordId.notes} </div>
-          <h2>Status: </h2>
           <div>Cover Letter: {this.props.recordId.coverLetterName}</div>
-          <div>Resume: </div> {this.props.recordId.resumeName}
+          <div> 
+            <ResumeEditor
+              name = {this.props.recordId.coverLetterName}
+              url = {this.props.recordId.coverLetterURL}
+            /> 
+          </div> 
+
+
+          <div>Resume:  {this.props.recordId.resumeName} </div>
+          <div> 
+            <ResumeEditor
+              name = {this.props.recordId.resumeName}
+              url = {this.props.recordId.resumeURL}
+            /> 
+          </div> 
+
+
+          <h2>Status: </h2>
           <div>First Interview: {this.props.recordId.firstInterview ? 'Yes' : 'No'}</div>
           <div>Second Interview: {this.props.recordId.secondInterview ? 'Yes' : 'No'}</div>
           <div>Offer: {this.props.recordId.offer ? 'Yes' : 'No'}</div>

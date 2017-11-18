@@ -7,28 +7,29 @@ export default class ResumeEditor extends React.Component {
     super(props);
     
     this.state = {
-      editorOpen : true, 
+      editorOpen : false, 
     }
-    this.openEditor = this.openEditor.bind(this)
+    this.toggleEditor = this.toggleEditor.bind(this)
   }
 
-  openEditor(data) {
-
+  toggleEditor() {
+    let editorOpen = !this.state.editorOpen
+    this.setState({editorOpen})
   }
 
 
   render() {
-    return (this.state.editorOpen) ? (
+    return (!this.state.editorOpen) ? (
       <div> 
-        <button>  </button> 
+        <button onClick = {this.toggleEditor}> Edit Document </button> 
       </div>
         ) : (
         <div>
+          <button onClick = {this.toggleEditor}> Close Editor </button>  
           <Iframe
-            url='www.google.com'
-            // width="450px"
+            url={this.props.url}
             height="450px"
-            // id={this.state.documentName || '#'} 
+            id={this.state.documentName || '#'} 
             className="Resume"
             display="initial"
             position="relative"

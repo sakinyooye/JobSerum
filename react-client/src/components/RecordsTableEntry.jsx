@@ -70,12 +70,6 @@ export default class RecordsTableEntry extends React.Component {
     // coverLetterURL based on the record id. 
   }
 
-
-
-
-
-
-  
   render() {
     console.log('this is the this.state.coverLettername in the recordsEntry', this.state.coverLetterName)
 
